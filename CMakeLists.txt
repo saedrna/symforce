@@ -23,11 +23,11 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # Enable/Disable Components
 
 option(SYMFORCE_BUILD_OPT "Build symforce_opt and related targets for optimization" ON)
-option(SYMFORCE_BUILD_CC_SYM "Build cc_sym and related targets for python wrapping" ON)
+option(SYMFORCE_BUILD_CC_SYM "Build cc_sym and related targets for python wrapping" OFF)
 option(SYMFORCE_BUILD_EXAMPLES "Build the examples" ON)
 option(SYMFORCE_BUILD_TESTS "Build and run the tests" ON)
-option(SYMFORCE_ADD_PYTHON_TESTS "Include the Python tests" ON)
-option(SYMFORCE_BUILD_SYMENGINE "Build symengine[py]" ON)
+option(SYMFORCE_ADD_PYTHON_TESTS "Include the Python tests" OFF)
+option(SYMFORCE_BUILD_SYMENGINE "Build symengine[py]" OFF)
 option(SYMFORCE_GENERATE_MANIFEST "Generate build manifest" ON)
 option(SYMFORCE_BUILD_BENCHMARKS "Generate examples for alternative libraries" OFF)
 
@@ -231,6 +231,12 @@ else()
   # TODO(aaron): Move this into skymarshal when we move eigen_lcm into skymarshal
   install(DIRECTORY third_party/eigen_lcm/lcmtypes/eigen_lcm_lcm/cpp/ DESTINATION include)
 
+  # Install symforce_lcmtypes_cpp target
+  install(TARGETS symforce_lcmtypes_cpp
+    EXPORT SymForceTargets
+    INCLUDES DESTINATION include
+  )
+
   add_custom_target(symforce_eigen_lcm_py ALL DEPENDS eigen_lcm_py)
 
   file(WRITE
@@ -279,7 +285,13 @@ target_include_directories(
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gen/cpp
 )
 
-install(TARGETS symforce_gen DESTINATION lib)
+install(TARGETS symforce_gen
+  EXPORT SymForceTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
 install(DIRECTORY gen/cpp/ DESTINATION include FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
 
 if(SYMFORCE_BUILD_OPT)
@@ -428,6 +440,12 @@ if(COMMAND ament_package)
     set(ament_cmake_copyright_FOUND TRUE)
     set(ament_cmake_cpplint_FOUND TRUE)
   endif()
+
+  # 导出 targets
+  ament_export_targets(SymForceTargets HAS_LIBRARY_TARGET)
+
+  # 导出依赖
+  ament_export_dependencies(fmt spdlog)
 
   ament_package()
 endif()

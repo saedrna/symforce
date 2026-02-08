@@ -73,6 +73,20 @@ endif(SYMFORCE_CUSTOM_TIC_TOCS)
 # ------------------------------------------------------------------------------
 # install
 
-install(TARGETS symforce_cholesky DESTINATION lib)
-install(TARGETS symforce_opt DESTINATION lib)
+install(TARGETS symforce_cholesky
+  EXPORT SymForceTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
+
+install(TARGETS symforce_opt
+  EXPORT SymForceTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
+
 install(DIRECTORY ./ DESTINATION include/symforce/opt FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")

@@ -23,5 +23,12 @@ target_link_libraries(symforce_slam
   ${SYMFORCE_EIGEN_TARGET}
 )
 
-install(TARGETS symforce_slam DESTINATION lib)
+install(TARGETS symforce_slam
+  EXPORT SymForceTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
+
 install(DIRECTORY ./ DESTINATION include/symforce/slam FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")

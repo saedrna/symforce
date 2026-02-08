@@ -12,6 +12,7 @@
   <depend>fmt</depend>
   <depend>spdlog</depend>
   <depend>Eigen3</depend>
+  <depend>metis</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
