@@ -103,6 +103,8 @@ set(SYMFORCE_PY_EXTENSION_MODULE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/pybind 
   "Location to place generated python extension modules"
 )
 
+find_package(ament_cmake REQUIRED)
+
 # ==============================================================================
 # Setup
 # ==============================================================================
@@ -217,7 +219,9 @@ else()
   )
 
   target_include_directories(symforce_lcmtypes_cpp
-    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/third_party/eigen_lcm/lcmtypes/eigen_lcm_lcm/cpp
+    INTERFACE
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party/eigen_lcm/lcmtypes/eigen_lcm_lcm/cpp>
+      $<INSTALL_INTERFACE:include>
   )
 
   add_skymarshal_bindings(eigen_lcm
@@ -282,7 +286,9 @@ endif()
 target_link_libraries(symforce_gen ${SYMFORCE_EIGEN_TARGET} symforce_lcmtypes_cpp)
 target_include_directories(
   symforce_gen
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gen/cpp
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/gen/cpp>
+    $<INSTALL_INTERFACE:include>
 )
 
 install(TARGETS symforce_gen
@@ -435,17 +441,24 @@ endif(SYMFORCE_BUILD_SYMENGINE)
 # Only call ament_package() if building with ament_cmake (colcon/ROS 2)
 if(COMMAND ament_package)
   if(BUILD_TESTING)
-    find_package(ament_lint_auto REQUIRED OPTIONAL)
+    find_package(ament_lint_auto REQUIRED)
     # Skip some linters for third-party library
     set(ament_cmake_copyright_FOUND TRUE)
     set(ament_cmake_cpplint_FOUND TRUE)
   endif()
 
+  ament_export_include_directories(include)
+
   # 导出 targets
   ament_export_targets(SymForceTargets HAS_LIBRARY_TARGET)
+  install(EXPORT SymForceTargets
+    FILE SymForceTargets.cmake
+    NAMESPACE symforce::            # 推荐加上命名空间，方便下游使用
+    DESTINATION share/${PROJECT_NAME}/cmake
+  )
 
   # 导出依赖
-  ament_export_dependencies(fmt spdlog)
+  ament_export_dependencies(fmt spdlog metis)
 
   ament_package()
 endif()

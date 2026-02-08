@@ -35,7 +35,10 @@ target_link_libraries(symforce_cholesky
   METIS::METIS
   ${SYMFORCE_EIGEN_TARGET}
 )
-target_include_directories(symforce_cholesky PUBLIC ../..)
+target_include_directories(symforce_cholesky PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>
+  $<INSTALL_INTERFACE:include>
+)
 
 # ------------------------------------------------------------------------------
 # symforce_opt
