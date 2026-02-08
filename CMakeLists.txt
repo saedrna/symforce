@@ -11,6 +11,8 @@ project(symforce)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# 添加 cmake 目录到 CMAKE_MODULE_PATH，用于查找 FindMETIS.cmake 等模块
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # ==============================================================================
@@ -414,3 +416,18 @@ if(SYMFORCE_BUILD_SYMENGINE)
   add_sourcechanged_dependency(symenginepy)
 
 endif(SYMFORCE_BUILD_SYMENGINE)
+
+# ==============================================================================
+# ROS 2 Package Export
+# ==============================================================================
+# Only call ament_package() if building with ament_cmake (colcon/ROS 2)
+if(COMMAND ament_package)
+  if(BUILD_TESTING)
+    find_package(ament_lint_auto REQUIRED OPTIONAL)
+    # Skip some linters for third-party library
+    set(ament_cmake_copyright_FOUND TRUE)
+    set(ament_cmake_cpplint_FOUND TRUE)
+  endif()
+
+  ament_package()
+endif()
