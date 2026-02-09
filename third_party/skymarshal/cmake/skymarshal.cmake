@@ -61,7 +61,10 @@ function(add_cpp_bindings
 
   add_library(${target_name}_cpp INTERFACE ${generated_files})
   # TODO(aaron): Should these be system includes?  They do have warnings
-  target_include_directories(${target_name}_cpp SYSTEM INTERFACE ${bindings_dir}/cpp)
+  target_include_directories(${target_name}_cpp SYSTEM INTERFACE 
+    $<BUILD_INTERFACE:${bindings_dir}/cpp>
+    $<INSTALL_INTERFACE:include>
+  )
   target_link_libraries(${target_name}_cpp INTERFACE skymarshal_core)
 
   set(${generated_files_outvar} ${generated_files} PARENT_SCOPE)
@@ -114,7 +117,7 @@ function(add_skymarshal_bindings target_name bindings_dir lcmtypes_dir)
   file(GLOB lcm_sources CONFIGURE_DEPENDS ${lcmtypes_dir}/*.lcm)
   add_custom_command(
     OUTPUT ${outputs}
-    COMMAND ${SKYMARSHAL_PYTHON} -m skymarshal ${skymarshal_args} ${lcmtypes_dir}
+    COMMAND ${SKYMARSHAL_PYTHON} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../skymarshal/__main__.py ${skymarshal_args} ${lcmtypes_dir}
     DEPENDS ${lcm_sources}
   )
 endfunction()

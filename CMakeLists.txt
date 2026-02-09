@@ -10,8 +10,11 @@ cmake_minimum_required(VERSION 3.19...3.25)
 
 project(symforce)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# 添加 cmake 目录到 CMAKE_MODULE_PATH，用于查找 FindMETIS.cmake 等模块
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # ==============================================================================
 # User-Configurable Options
@@ -21,11 +24,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Enable/Disable Components
 
 option(SYMFORCE_BUILD_OPT "Build symforce_opt and related targets for optimization" ON)
-option(SYMFORCE_BUILD_CC_SYM "Build cc_sym and related targets for python wrapping" ON)
+option(SYMFORCE_BUILD_CC_SYM "Build cc_sym and related targets for python wrapping"  OFF)
 option(SYMFORCE_BUILD_EXAMPLES "Build the examples" ON)
 option(SYMFORCE_BUILD_TESTS "Build and run the tests" ON)
-option(SYMFORCE_ADD_PYTHON_TESTS "Include the Python tests" ON)
-option(SYMFORCE_BUILD_SYMENGINE "Build symengine[py]" ON)
+option(SYMFORCE_ADD_PYTHON_TESTS "Include the Python tests" OFF)
+option(SYMFORCE_BUILD_SYMENGINE "Build symengine[py]" OFF)
 option(SYMFORCE_GENERATE_MANIFEST "Generate build manifest" ON)
 option(SYMFORCE_BUILD_BENCHMARKS "Generate examples for alternative libraries" OFF)
 
@@ -68,7 +71,7 @@ option(SYMFORCE_SKYMARSHAL_PRINTING
 
 option(SYMFORCE_BUILD_STATIC_LIBRARIES "Build libraries as static" OFF)
 
-set(SYMFORCE_COMPILE_OPTIONS -Wall;-Wextra;-Werror CACHE STRING
+set(SYMFORCE_COMPILE_OPTIONS -Wall;-Wextra CACHE STRING
   "Extra flags to pass to the compiler; defaults to enabling warnings"
 )
 
@@ -95,6 +98,13 @@ set(SYMFORCE_PY_EXTENSION_MODULE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/pybind 
 set(SYMFORCE_EIGEN_TARGET "Eigen3::Eigen" CACHE STRING
   "Target to depend on for Eigen. Default is to find Eigen with find_package."
 )
+
+# ==============================================================================
+# ROS 2 Support
+# ==============================================================================
+
+# Try to find ROS 2 ament_cmake (optional)
+find_package(ament_cmake QUIET)
 
 # ==============================================================================
 # Setup
@@ -210,7 +220,9 @@ else()
   )
 
   target_include_directories(symforce_lcmtypes_cpp
-    INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/third_party/eigen_lcm/lcmtypes/eigen_lcm_lcm/cpp
+    INTERFACE
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party/eigen_lcm/lcmtypes/eigen_lcm_lcm/cpp>
+      $<INSTALL_INTERFACE:include>
   )
 
   add_skymarshal_bindings(eigen_lcm
@@ -223,6 +235,15 @@ else()
   # sure
   # TODO(aaron): Move this into skymarshal when we move eigen_lcm into skymarshal
   install(DIRECTORY third_party/eigen_lcm/lcmtypes/eigen_lcm_lcm/cpp/ DESTINATION include)
+
+  # Install symforce lcmtypes generated headers
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lcmtypes/cpp/ DESTINATION include)
+
+  # 安装 symforce_lcmtypes_cpp target
+  install(TARGETS symforce_lcmtypes_cpp
+    EXPORT SymForceTargets
+    INCLUDES DESTINATION include
+  )
 
   add_custom_target(symforce_eigen_lcm_py ALL DEPENDS eigen_lcm_py)
 
@@ -275,13 +296,27 @@ add_library(
   ${SYMFORCE_GEN_HEADERS}
 )
 target_compile_options(symforce_gen PRIVATE ${SYMFORCE_COMPILE_OPTIONS})
+
+# Add -ffast-math option if not disabled
+if(NOT SYMFORCE_NO_FAST_MATH)
+  target_compile_options(symforce_gen PRIVATE -ffast-math)
+endif()
+
 target_link_libraries(symforce_gen ${SYMFORCE_EIGEN_TARGET} symforce_lcmtypes_cpp)
 target_include_directories(
   symforce_gen
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gen/cpp
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/gen/cpp>
+    $<INSTALL_INTERFACE:include>
 )
 
-install(TARGETS symforce_gen DESTINATION lib)
+install(TARGETS symforce_gen
+  EXPORT SymForceTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
 install(DIRECTORY gen/cpp/ DESTINATION include FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
 
 if(SYMFORCE_BUILD_OPT)
@@ -412,3 +447,32 @@ if(SYMFORCE_BUILD_SYMENGINE)
   add_sourcechanged_dependency(symenginepy)
 
 endif(SYMFORCE_BUILD_SYMENGINE)
+
+# ==============================================================================
+# ROS 2 Package Export
+# ==============================================================================
+# Only call ament_package() if building with ament_cmake (colcon/ROS 2)
+if(COMMAND ament_package)
+  if(BUILD_TESTING)
+    find_package(ament_lint_auto REQUIRED)
+    # Skip some linters for third-party library
+    set(ament_cmake_copyright_FOUND TRUE)
+    set(ament_cmake_cpplint_FOUND TRUE)
+  endif()
+
+  ament_export_include_directories(include)
+
+  # 导出 targets
+  ament_export_targets(SymForceTargets HAS_LIBRARY_TARGET)
+  install(EXPORT SymForceTargets
+    FILE SymForceTargets.cmake
+    NAMESPACE symforce::
+    DESTINATION share/${PROJECT_NAME}/cmake
+  )
+
+  # 导出依赖
+  ament_export_dependencies(fmt spdlog)
+
+  ament_package()
+endif()
+

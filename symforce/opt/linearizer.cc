@@ -5,6 +5,7 @@
 
 #include "./linearizer.h"
 
+#include "./fmt_compat.h"
 #include "./assert.h"
 #include "./internal/linearizer_utils.h"
 #include "./optional.h"

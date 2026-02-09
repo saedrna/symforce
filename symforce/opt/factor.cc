@@ -10,6 +10,7 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <fmt/ranges.h>
+#include "./fmt_compat.h"
 
 #include "./assert.h"
 #include "./internal/factor_utils.h"

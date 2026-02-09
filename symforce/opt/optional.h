@@ -5,11 +5,11 @@
 
 #pragma once
 
-#include <tl/optional.hpp>
+#include <optional>
 
 namespace sym {
 
 template <typename T>
-using optional = tl::optional<T>;
+using optional = std::optional<T>;
 
 }
