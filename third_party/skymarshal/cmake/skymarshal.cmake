@@ -91,7 +91,7 @@ function(add_skymarshal_bindings target_name bindings_dir lcmtypes_dir)
   endif()
 
   # NOTE(aaron):  Who knows if this'll work if there are spaces in the PYTHONPATH?  I don't
-  set(SKYMARSHAL_PYTHON env PYTHONPATH=$ENV{PYTHONPATH}:${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../.. ${SYMFORCE_PYTHON})
+  set(SKYMARSHAL_PYTHON env PYTHONPATH=$ENV{PYTHONPATH}:${CMAKE_CURRENT_FUNCTION_LIST_DIR}/.. ${SYMFORCE_PYTHON})
 
   execute_process(
     COMMAND ${SKYMARSHAL_PYTHON} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/parse_types.py ${lcmtypes_dir}
@@ -117,7 +117,7 @@ function(add_skymarshal_bindings target_name bindings_dir lcmtypes_dir)
   file(GLOB lcm_sources CONFIGURE_DEPENDS ${lcmtypes_dir}/*.lcm)
   add_custom_command(
     OUTPUT ${outputs}
-    COMMAND ${SKYMARSHAL_PYTHON} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../skymarshal/__main__.py ${skymarshal_args} ${lcmtypes_dir}
+    COMMAND ${SKYMARSHAL_PYTHON} -m skymarshal ${skymarshal_args} ${lcmtypes_dir}
     DEPENDS ${lcm_sources}
   )
 endfunction()
