@@ -7,6 +7,7 @@
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <symforce/opt/fmt_compat.h>
 
 #include <symforce/opt/key.h>
 

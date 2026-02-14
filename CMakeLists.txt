@@ -23,7 +23,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # Enable/Disable Components
 
 option(SYMFORCE_BUILD_OPT "Build symforce_opt and related targets for optimization" ON)
-option(SYMFORCE_BUILD_CC_SYM "Build cc_sym and related targets for python wrapping" OFF)
+option(SYMFORCE_BUILD_CC_SYM "Build cc_sym and related targets for python wrapping" ON)
 option(SYMFORCE_BUILD_EXAMPLES "Build the examples" ON)
 option(SYMFORCE_BUILD_TESTS "Build and run the tests" ON)
 option(SYMFORCE_ADD_PYTHON_TESTS "Include the Python tests" OFF)

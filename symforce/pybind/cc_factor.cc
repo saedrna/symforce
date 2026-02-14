@@ -11,6 +11,7 @@
 #include <Eigen/Core>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <symforce/opt/fmt_compat.h>
 #include <pybind11/eigen.h>
 #include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
@@ -50,7 +51,8 @@ template <>
 void ThrowIfSparsityMismatch<Eigen::SparseMatrix<double>>(const py::object& matrix) {
   if (!py::isinstance(matrix, py::module_::import("scipy.sparse").attr("csc_matrix"))) {
     throw py::value_error(
-        fmt::format("scipy.sparse.csc_matrix expected, found {} instead.", py::type::of(matrix)));
+        fmt::format("scipy.sparse.csc_matrix expected, found {} instead.",
+                   std::string(py::str(py::type::of(matrix)))));
   }
 }
 

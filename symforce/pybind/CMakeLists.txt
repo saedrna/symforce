@@ -9,32 +9,14 @@
 
 include(FetchContent)
 
-# NOTE(aaron): cc_sym builds with pybind 2.13.6 and up, but the stubs are generated using pybind
-# 3 (and pybind 3.x does produce different stubs from 2.x).  We'll use pybind 2.x if we find it, but
-# for CI (or for reproducing the stubs locally), pybind 3.x is required.
-find_package(pybind11 2.13.6 QUIET)
-if (NOT pybind11_FOUND)
-  message(STATUS "pybind11 not found, adding with FetchContent")
-  # NOTE(brad): Set PYTHON_EXECUTABLE to ensure pybind11 uses the same
-  # python as the rest of symforce.
-  set(PYTHON_EXECUTABLE ${SYMFORCE_PYTHON})
-  # Disable FindPython.  This causes issues in cibuildwheel when the Python it finds is different
-  # from the one we want, and we've specified the python we want above.  We could maybe only disable
-  # if SYMFORCE_PYTHON is set?
-  set(PYBIND11_FINDPYTHON OFF)
-  if(NOT PYTHON_EXECUTABLE)
-    message(FATAL_ERROR "PYTHON_EXECUTABLE not set - cannot configure pybind11")
-  endif()
-  message(STATUS "Using Python executable: ${PYTHON_EXECUTABLE}")
-  FetchContent_Declare(
-    pybind11
-    URL https://github.com/pybind/pybind11/archive/v3.0.1.zip
-    URL_HASH SHA256=20fb420fe163d0657a262a8decb619b7c3101ea91db35f1a7227e67c426d4c7e
-  )
-  FetchContent_MakeAvailable(pybind11)
-else()
-  message(STATUS "pybind11 found")
-endif()
+# Ensure Python3 is found with Development.Module BEFORE pybind11.
+# ament_cmake already sets Python3_FOUND (Interpreter only), which causes
+# pybind11NewTools.cmake to skip its own find_package(Python) and then fail
+# because python3_add_library is missing without the Development component.
+find_package(Python3 COMPONENTS Interpreter Development.Module Development.Embed REQUIRED)
+
+set(Python_FIND_VIRTUALENV ONLY)
+find_package(pybind11 REQUIRED)
 
 # ==============================================================================
 # SymForce Targets
