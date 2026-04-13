@@ -196,7 +196,7 @@ void AddFactorWrapper(pybind11::module_ module) {
            )")
       .def(
           "linearize",
-          [](const sym::Factord& factor, const sym::Valuesd& values) {
+          [](const sym::Factord& factor, const sym::Valuesd& values) -> py::tuple {
             if (factor.IsSparse()) {
               Eigen::VectorXd residual;
               Eigen::SparseMatrix<double> jacobian;
